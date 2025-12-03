@@ -14,15 +14,15 @@ from n8n_json_handler import create_n8n_processor
 # SA SETTINGS
 INITIAL_TEMP = 1000.0
 FINAL_TEMP = 0.01
-COOLING_RATE = 0.999  # Slower cooling = more iterations
-MAX_ITERATIONS = 50000  # Much higher limit
+COOLING_RATE = 0.999                    # Slower cooling = more iterations
+MAX_ITERATIONS = 50000                  # Much higher limit
 
 # COST FUNCTION WEIGHTS
 AREA_WEIGHT = 10.0
 DEAD_SPACE_WEIGHT = 1000.0
-ASPECT_WEIGHT = 1000.0  # High penalty for aspect ratio violations
+ASPECT_WEIGHT = 1000.0                  # High penalty for aspect ratio violations
 TARGET_ASPECT_RATIO = 1.0
-MAX_ASPECT_RATIO = 1.5  # New: Maximum allowed aspect ratio
+MAX_ASPECT_RATIO = 1.5                  # New: Maximum allowed aspect ratio
 
 
 def extract_variants(json_data):
