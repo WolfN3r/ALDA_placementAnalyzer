@@ -1,0 +1,265 @@
+{
+  "generation_params": {
+    "num_of_blocks": 2,
+    "seed": 42
+  },
+  "technology": "gpdk090_simple_tech",
+  "blocks": [
+    {
+      "device_type": "nmos1v_nat",
+      "parameters": {
+        "width": 2.835,
+        "length": 0.15,
+        "multiplier": 8,
+        "num_fingers": 2,
+        "total_fingers": 16
+      },
+      "variants": [
+        {
+          "layout": {
+            "rows": 4,
+            "cols": 4,
+            "aspect_ratio": 1.315,
+            "arrangement": [
+              [
+                0,
+                1,
+                2,
+                3
+              ],
+              [
+                4,
+                5,
+                6,
+                7
+              ],
+              [
+                8,
+                9,
+                10,
+                11
+              ],
+              [
+                12,
+                13,
+                14,
+                15
+              ]
+            ]
+          },
+          "matching_scheme": [
+            [
+              0,
+              7
+            ],
+            [
+              1,
+              6
+            ],
+            [
+              2,
+              5
+            ],
+            [
+              3,
+              4
+            ]
+          ],
+          "main_bbox": {
+            "x_min": 0.0,
+            "y_min": 0.0,
+            "x_max": 7.93,
+            "y_max": 6.03
+          },
+          "spacing_envelopes": {
+            "nmos1v_nat": {
+              "x_min": -4.0,
+              "y_min": -4.0,
+              "x_max": 11.93,
+              "y_max": 10.03
+            },
+            "nmos2v_nat": {
+              "x_min": -20.0,
+              "y_min": -20.0,
+              "x_max": 27.93,
+              "y_max": 26.03
+            },
+            "pmos1v_nat": {
+              "x_min": -12.0,
+              "y_min": -12.0,
+              "x_max": 19.93,
+              "y_max": 18.03
+            },
+            "pmos2v_nat": {
+              "x_min": -16.0,
+              "y_min": -16.0,
+              "x_max": 23.93,
+              "y_max": 22.03
+            }
+          },
+          "is_used": false
+        }
+      ],
+      "block_id": 0,
+      "generation_attempts": 1
+    },
+    {
+      "device_type": "nmos1v_nat",
+      "parameters": {
+        "width": 0.435,
+        "length": 1.22,
+        "multiplier": 4,
+        "num_fingers": 2,
+        "total_fingers": 8
+      },
+      "variants": [
+        {
+          "layout": {
+            "rows": 4,
+            "cols": 2,
+            "aspect_ratio": 1.215,
+            "arrangement": [
+              [
+                0,
+                1
+              ],
+              [
+                2,
+                3
+              ],
+              [
+                4,
+                5
+              ],
+              [
+                6,
+                7
+              ]
+            ]
+          },
+          "matching_scheme": [
+            [
+              0,
+              3
+            ],
+            [
+              1,
+              2
+            ]
+          ],
+          "main_bbox": {
+            "x_min": 0.0,
+            "y_min": 0.0,
+            "x_max": 1.495,
+            "y_max": 1.23
+          },
+          "spacing_envelopes": {
+            "nmos1v_nat": {
+              "x_min": -4.0,
+              "y_min": -4.0,
+              "x_max": 5.495,
+              "y_max": 5.23
+            },
+            "nmos2v_nat": {
+              "x_min": -20.0,
+              "y_min": -20.0,
+              "x_max": 21.495,
+              "y_max": 21.23
+            },
+            "pmos1v_nat": {
+              "x_min": -12.0,
+              "y_min": -12.0,
+              "x_max": 13.495,
+              "y_max": 13.23
+            },
+            "pmos2v_nat": {
+              "x_min": -16.0,
+              "y_min": -16.0,
+              "x_max": 17.495,
+              "y_max": 17.23
+            }
+          },
+          "is_used": false
+        },
+        {
+          "layout": {
+            "rows": 8,
+            "cols": 1,
+            "aspect_ratio": 0.264,
+            "arrangement": [
+              [
+                0
+              ],
+              [
+                1
+              ],
+              [
+                2
+              ],
+              [
+                3
+              ],
+              [
+                4
+              ],
+              [
+                5
+              ],
+              [
+                6
+              ],
+              [
+                7
+              ]
+            ]
+          },
+          "matching_scheme": [
+            [
+              0,
+              3
+            ],
+            [
+              1,
+              2
+            ]
+          ],
+          "main_bbox": {
+            "x_min": 0.0,
+            "y_min": 0.0,
+            "x_max": 0.68,
+            "y_max": 2.58
+          },
+          "spacing_envelopes": {
+            "nmos1v_nat": {
+              "x_min": -4.0,
+              "y_min": -4.0,
+              "x_max": 4.68,
+              "y_max": 6.58
+            },
+            "nmos2v_nat": {
+              "x_min": -20.0,
+              "y_min": -20.0,
+              "x_max": 20.68,
+              "y_max": 22.58
+            },
+            "pmos1v_nat": {
+              "x_min": -12.0,
+              "y_min": -12.0,
+              "x_max": 12.68,
+              "y_max": 14.58
+            },
+            "pmos2v_nat": {
+              "x_min": -16.0,
+              "y_min": -16.0,
+              "x_max": 16.68,
+              "y_max": 18.58
+            }
+          },
+          "is_used": false
+        }
+      ],
+      "block_id": 1,
+      "generation_attempts": 1
+    }
+  ]
+}

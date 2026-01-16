@@ -1,0 +1,44 @@
+{
+  "generation_params": {
+    "comment": "Parameters for random block generation",
+    "length_range": {
+      "description": "Length range as fraction of device max",
+      "max_fraction": 0.2,
+      "step": 0.01,
+      "comment": "Length will be from device_min to device_max * max_fraction, snapped to step (not grid)"
+    },
+    "width_range": {
+      "description": "Width range as fraction of device max", 
+      "max_fraction": 0.1,
+      "step": 0.05,
+      "comment": "Width will be from device_min to device_max * max_fraction, snapped to step (not grid)"
+    },
+    "multiplier_range": {
+      "min": 2,
+      "max": 16,
+      "comment": "Even numbers only, range: [min, max]"
+    },
+    "num_fingers_range": {
+      "min": 1,
+      "max": 4,
+      "comment": "Number of fingers per transistor"
+    },
+    "aspect_ratio": {
+      "min_aspect_min": 0.3,
+      "min_aspect_max": 0.8,
+      "max_aspect_min": 1.2,
+      "max_aspect_max": 3.0,
+      "comment": "Random ranges for min and max aspect ratios"
+    }
+  },
+  "netlist": {
+    "density": 2.0,
+    "pins_per_block_min": 3,
+    "pins_per_block_max": 6,
+    "comment": "Netlist generation: N_nets = density * N_blocks, pins per block 3-6"
+  },
+  "validation": {
+    "max_generation_attempts": 10,
+    "comment": "Maximum attempts to generate a block with at least one valid variant"
+  }
+}

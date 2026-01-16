@@ -1,7 +1,8 @@
 services:
   n8n:
     build: .
-    container_name: n8n-python
+    image: alda-placement-analyzer:latest
+    container_name: alda-placement-analyzer
     restart: unless-stopped
     ports:
       - "5678:5678"

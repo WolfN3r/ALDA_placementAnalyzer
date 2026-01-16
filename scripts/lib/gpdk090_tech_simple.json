@@ -1,0 +1,48 @@
+{
+    "technology_info": {
+        "name": "gpdk090_simple_tech",
+        "manufacturing_grid": 0.005,
+        "units": "um"
+    },
+    "device_constraints": {
+        "nmos1v_nat": {
+            "L": {"min": 0.1, "max": 10.0, "default": 0.1},
+            "W": {"min": 0.12, "max": 100.0, "default": 1.0}
+        },
+        "nmos2v_nat": {
+            "L": {"min": 0.4, "max": 10.0, "default": 0.4},
+            "W": {"min": 0.4, "max": 100.0, "default": 2.0}
+        },
+        "pmos1v_nat": {
+            "L": {"min": 0.1, "max": 10.0, "default": 0.1},
+            "W": {"min": 0.12, "max": 100.0, "default": 1.0}
+        },
+        "pmos2v_nat": {
+            "L": {"min": 0.4, "max": 10.0, "default": 0.4},
+            "W": {"min": 0.4, "max": 100.0, "default": 2.0}
+        }
+    },
+    "physical_design_rules": {
+        "poly": {
+            "min_width": 0.1,
+            "min_spacing": 0.14,
+            "extension_over_active": 0.18
+        },
+        "active": {
+            "min_width": 0.12,
+            "min_spacing": 0.12,
+            "extension_past_poly": 0.18
+        },
+        "contact": {
+            "size": 0.12,
+            "min_spacing": 0.14,
+            "enclosure_by_active": 0.06
+        }
+    },
+    "inter_device_spacing_matrix": {
+        "nmos1v_nat": { "nmos1v_nat": 4.0, "nmos2v_nat": 20.0, "pmos1v_nat": 12.0, "pmos2v_nat": 16.0 },
+        "nmos2v_nat": { "nmos1v_nat": 20.0, "nmos2v_nat": 6.0, "pmos1v_nat": 20.0, "pmos2v_nat": 20.0 },
+        "pmos1v_nat": { "nmos1v_nat": 12.0, "nmos2v_nat": 20.0, "pmos1v_nat": 4.0, "pmos2v_nat": 8.0 },
+        "pmos2v_nat": { "nmos1v_nat": 16.0, "nmos2v_nat": 20.0, "pmos1v_nat": 8.0, "pmos2v_nat": 6.0 }
+    }
+}

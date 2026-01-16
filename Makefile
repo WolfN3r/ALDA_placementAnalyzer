@@ -13,12 +13,15 @@ NC := \033[0m # No Color
 # n8n version
 N8N_VERSION := 0.236.3
 
+# Project name
+PROJECT_NAME := ALDA Placement Analyzer
+
 ##@ Setup Commands
 
 
 init: ## Initialize the project (first time setup)
 	@echo "$(BLUE)========================================$(NC)"
-	@echo "$(BLUE)  Initializing n8n Python Environment$(NC)"
+	@echo "$(BLUE)  Initializing $(PROJECT_NAME)$(NC)"
 	@echo "$(BLUE)========================================$(NC)"
 	@echo ""
 	@echo "$(YELLOW)n8n version: $(N8N_VERSION) (no authentication required)$(NC)"
@@ -40,51 +43,51 @@ init: ## Initialize the project (first time setup)
 	@echo "$(GREEN)========================================$(NC)"
 	@echo ""
 	@echo "Next steps:"
-	@echo "  1. Run '$(YELLOW)make up$(NC)' to start n8n"
+	@echo "  1. Run '$(YELLOW)make up$(NC)' to start the placer"
 	@echo "  2. Open http://localhost:5678 in your browser"
 	@echo "  3. $(GREEN)No login required!$(NC) Just start creating workflows"
 	@echo "  4. Run '$(YELLOW)make help$(NC)' to see all available commands"
 	@echo ""
 
 build: ## Build the Docker image
-	@echo "$(BLUE)Building n8n-python Docker image (n8n v$(N8N_VERSION))...$(NC)"
+	@echo "$(BLUE)Building alda-placement-analyzer Docker image (n8n v$(N8N_VERSION))...$(NC)"
 	@docker compose build
 	@echo "$(GREEN)✓ Build complete$(NC)"
 
 ##@ Container Control
 
-up: ## Start the n8n container
-	@echo "$(BLUE)Starting n8n container...$(NC)"
+up: ## Start the container
+	@echo "$(BLUE)Starting $(PROJECT_NAME) container...$(NC)"
 	@docker compose up -d
 	@echo "$(GREEN)✓ Container started$(NC)"
 	@echo ""
-	@echo "n8n $(N8N_VERSION) is now running at: $(YELLOW)http://localhost:5678$(NC)"
+	@echo "$(PROJECT_NAME) (n8n $(N8N_VERSION)) is now running at: $(YELLOW)http://localhost:5678$(NC)"
 	@echo "$(GREEN)No authentication required - just open and start working!$(NC)"
 	@echo ""
 	@echo "Run '$(YELLOW)make logs$(NC)' to see the logs"
 
 down: ## Stop and remove the container
-	@echo "$(YELLOW)Stopping n8n container...$(NC)"
+	@echo "$(YELLOW)Stopping $(PROJECT_NAME) container...$(NC)"
 	@docker compose down
 	@echo "$(GREEN)✓ Container stopped$(NC)"
 
 stop: ## Stop the container without removing it
-	@echo "$(YELLOW)Stopping n8n container...$(NC)"
+	@echo "$(YELLOW)Stopping $(PROJECT_NAME) container...$(NC)"
 	@docker compose stop
 	@echo "$(GREEN)✓ Container stopped$(NC)"
 
 start: ## Start an existing stopped container
-	@echo "$(BLUE)Starting n8n container...$(NC)"
+	@echo "$(BLUE)Starting $(PROJECT_NAME) container...$(NC)"
 	@docker compose start
 	@echo "$(GREEN)✓ Container started$(NC)"
 
 restart: ## Restart the container
-	@echo "$(YELLOW)Restarting n8n container...$(NC)"
+	@echo "$(YELLOW)Restarting $(PROJECT_NAME) container...$(NC)"
 	@docker compose restart
 	@echo "$(GREEN)✓ Container restarted$(NC)"
 
 rebuild: ## Rebuild and restart the container
-	@echo "$(BLUE)Rebuilding and restarting n8n...$(NC)"
+	@echo "$(BLUE)Rebuilding and restarting $(PROJECT_NAME)...$(NC)"
 	@$(MAKE) down
 	@$(MAKE) build
 	@$(MAKE) up
@@ -103,12 +106,12 @@ logs-follow: ## Follow logs in real-time
 stats: ## Show live container resource usage
 	@echo "$(BLUE)Container resource usage (press Ctrl+C to exit):$(NC)"
 	@echo ""
-	@docker stats n8n-python
+	@docker stats alda-placement-analyzer
 
 memory: ## Show current memory usage
 	@echo "$(BLUE)Current memory usage:$(NC)"
 	@echo ""
-	@docker stats n8n-python --no-stream --format "table {{.Name}}\t{{.CPUPerc}}\t{{.MemUsage}}\t{{.MemPerc}}"
+	@docker stats alda-placement-analyzer --no-stream --format "table {{.Name}}\t{{.CPUPerc}}\t{{.MemUsage}}\t{{.MemPerc}}"
 
 ps: ## Show container status
 	@echo "$(BLUE)Container status:$(NC)"
@@ -116,7 +119,7 @@ ps: ## Show container status
 	@docker compose ps
 
 shell: ## Open a shell inside the container
-	@echo "$(BLUE)Opening shell in n8n container...$(NC)"
+	@echo "$(BLUE)Opening shell in $(PROJECT_NAME) container...$(NC)"
 	@docker compose exec n8n /bin/bash
 
 version: ## Show n8n version
@@ -153,7 +156,7 @@ reset: ## Full reset (clean all + rebuild)
 
 help: ## Display this help message
 	@echo "$(BLUE)========================================$(NC)"
-	@echo "$(BLUE)  n8n Python Environment - Makefile$(NC)"
+	@echo "$(BLUE)  $(PROJECT_NAME) - Makefile$(NC)"
 	@echo "$(BLUE)========================================$(NC)"
 	@echo ""
 	@echo "$(GREEN)n8n version: $(N8N_VERSION) (no authentication)$(NC)"
@@ -166,7 +169,7 @@ help: ## Display this help message
 	@echo "  build             Build the Docker image"
 	@echo ""
 	@echo "$(BLUE)Container Control$(NC)"
-	@echo "  up                Start the n8n container"
+	@echo "  up                Start the container"
 	@echo "  down              Stop and remove the container"
 	@echo "  stop              Stop the container without removing it"
 	@echo "  start             Start an existing stopped container"
@@ -194,7 +197,7 @@ help: ## Display this help message
 	@echo ""
 	@echo "$(BLUE)Quick Start:$(NC)"
 	@echo "  1. $(YELLOW)make init$(NC)    - First time setup"
-	@echo "  2. $(YELLOW)make up$(NC)      - Start n8n"
+	@echo "  2. $(YELLOW)make up$(NC)      - Start the placer"
 	@echo "  3. Open http://localhost:5678 $(GREEN)(no login needed!)$(NC)"
 	@echo ""
 	@echo "$(BLUE)Common Tasks:$(NC)"
@@ -211,6 +214,7 @@ info: ## Show system information
 	@echo "$(BLUE)========================================$(NC)"
 	@echo ""
 	@echo "$(YELLOW)Configuration:$(NC)"
+	@echo "  Project: $(PROJECT_NAME)"
 	@echo "  n8n version: $(N8N_VERSION)"
 	@echo "  Authentication: Disabled"
 	@echo ""
