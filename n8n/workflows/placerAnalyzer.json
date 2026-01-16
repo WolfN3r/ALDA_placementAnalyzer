@@ -1,0 +1,271 @@
+{
+  "name": "placerAnalyzer",
+  "nodes": [
+    {
+      "parameters": {},
+      "id": "bc031b6b-227c-456d-99ea-38a91be6ca50",
+      "name": "When clicking \"Execute Workflow\"",
+      "type": "n8n-nodes-base.manualTrigger",
+      "typeVersion": 1,
+      "position": [
+        140,
+        360
+      ]
+    },
+    {
+      "parameters": {
+        "functionCode": "import json\nimport subprocess\nimport sys\nimport gc\n\ndef process_with_minimal_memory():\n    script_path = './scripts/01_load_tech_json.py'  # 👈 CHANGE ONLY THIS PATH\n    \n    # Convert items to single dict if it's a list\n    if isinstance(items, list) and len(items) == 1:\n        payload = items[0]\n    elif isinstance(items, list):\n        payload = {\"batch\": items}  # Wrap multiple items\n    else:\n        payload = items\n    \n    proc = subprocess.Popen(\n        ['python3', script_path],\n        stdin=subprocess.PIPE,\n        stdout=subprocess.PIPE,\n        stderr=subprocess.PIPE,\n        text=True,\n    )\n    \n    # Send JSON efficiently\n    json_data = json.dumps(payload)\n    stdout, stderr = proc.communicate(json_data)\n    \n    # Cleanup input data immediately\n    del json_data, payload\n    gc.collect()\n    \n    if stderr:\n        print(stderr, file=sys.stderr)\n    \n    # Parse result\n    response = json.loads(stdout)\n    del stdout\n    \n    # Return in n8n format\n    if isinstance(response, list):\n        return response\n    else:\n        return [response]\n\n# Main execution\nresult = process_with_minimal_memory()\nreturn result\n"
+      },
+      "id": "42e14d1c-9b1d-4ed4-9685-1177bed2f74e",
+      "name": "Load tech lib",
+      "type": "n8n-nodes-python.pythonFunction",
+      "typeVersion": 1,
+      "position": [
+        300,
+        360
+      ]
+    },
+    {
+      "parameters": {
+        "jsCode": "/**\n * n8n Code node (Run Once for All Items)\n * Duplicates the first input item gen_params.repetition times,\n * incrementing gen_params.seed each time.\n *\n * Output: array of items [{ json: ... }, { json: ... }, ...]\n * suitable for Split in Batches.\n */\n\nconst inputItems = $input.all();\nif (!inputItems.length) return [];\n\nconst inputJson = inputItems[0].json;\n\n// Basic validation\nif (!inputJson.gen_params) {\n  throw new Error('Input JSON must contain \"gen_params\".');\n}\nif (typeof inputJson.gen_params.repetition !== 'number') {\n  throw new Error('\"gen_params.repetition\" must be a number.');\n}\nif (typeof inputJson.gen_params.seed !== 'number') {\n  throw new Error('\"gen_params.seed\" must be a number.');\n}\n\nconst repetition = Math.floor(inputJson.gen_params.repetition);\nif (repetition < 0) {\n  throw new Error('\"gen_params.repetition\" must be >= 0.');\n}\n\nlet seed = inputJson.gen_params.seed;\n\nconst out = [];\nfor (let i = 0; i < repetition; i++) {\n  // Deep clone so each item is independent\n  const cloned = JSON.parse(JSON.stringify(inputJson));\n\n  // Set incremented seed\n  cloned.gen_params.seed = seed;\n\n  out.push({ json: cloned });\n\n  seed++;\n}\n\nreturn out;\n"
+      },
+      "id": "cecc579d-6324-4342-afb0-c9a51eec4ef1",
+      "name": "Code",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 1,
+      "position": [
+        620,
+        360
+      ]
+    },
+    {
+      "parameters": {
+        "values": {
+          "number": [
+            {
+              "name": "gen_params.num_of_blocks",
+              "value": "=7"
+            },
+            {
+              "name": "gen_params.seed",
+              "value": "=1"
+            },
+            {
+              "name": "gen_params.repetition",
+              "value": 5
+            }
+          ]
+        },
+        "options": {
+          "dotNotation": true
+        }
+      },
+      "id": "880a1cd7-1bff-41ee-a2a5-eb609bef35f1",
+      "name": "Set seed + Num_Blocks + Repetitions",
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 2,
+      "position": [
+        460,
+        360
+      ]
+    },
+    {
+      "parameters": {
+        "functionCode": "import json\nimport subprocess\nimport sys\nimport gc\n\ndef process_with_minimal_memory():\n    script_path = './scripts/02_transistor_block_generator.py'  # 👈 CHANGE ONLY THIS PATH\n    \n    # Convert items to single dict if it's a list\n    if isinstance(items, list) and len(items) == 1:\n        payload = items[0]\n    elif isinstance(items, list):\n        payload = {\"batch\": items}  # Wrap multiple items\n    else:\n        payload = items\n    \n    proc = subprocess.Popen(\n        ['python3', script_path],\n        stdin=subprocess.PIPE,\n        stdout=subprocess.PIPE,\n        stderr=subprocess.PIPE,\n        text=True,\n    )\n    \n    # Send JSON efficiently\n    json_data = json.dumps(payload)\n    stdout, stderr = proc.communicate(json_data)\n    \n    # Cleanup input data immediately\n    del json_data, payload\n    gc.collect()\n    \n    if stderr:\n        print(stderr, file=sys.stderr)\n    \n    # Parse result\n    response = json.loads(stdout)\n    del stdout\n    \n    # Return in n8n format\n    if isinstance(response, list):\n        return response\n    else:\n        return [response]\n\n# Main execution\nresult = process_with_minimal_memory()\nreturn result\n"
+      },
+      "id": "4d726c43-bbad-4ea1-95a6-6244904f249e",
+      "name": "Generate blocks",
+      "type": "n8n-nodes-python.pythonFunction",
+      "typeVersion": 1,
+      "position": [
+        1060,
+        340
+      ]
+    },
+    {
+      "parameters": {
+        "functionCode": "import json\nimport subprocess\nimport sys\nimport gc\n\ndef process_with_minimal_memory():\n    script_path = './scripts/03_initial_placer.py'  # 👈 CHANGE ONLY THIS PATH\n    \n    # Convert items to single dict if it's a list\n    if isinstance(items, list) and len(items) == 1:\n        payload = items[0]\n    elif isinstance(items, list):\n        payload = {\"batch\": items}  # Wrap multiple items\n    else:\n        payload = items\n    \n    proc = subprocess.Popen(\n        ['python3', script_path],\n        stdin=subprocess.PIPE,\n        stdout=subprocess.PIPE,\n        stderr=subprocess.PIPE,\n        text=True,\n    )\n    \n    # Send JSON efficiently\n    json_data = json.dumps(payload)\n    stdout, stderr = proc.communicate(json_data)\n    \n    # Cleanup input data immediately\n    del json_data, payload\n    gc.collect()\n    \n    if stderr:\n        print(stderr, file=sys.stderr)\n    \n    # Parse result\n    response = json.loads(stdout)\n    del stdout\n    \n    # Return in n8n format\n    if isinstance(response, list):\n        return response\n    else:\n        return [response]\n\n# Main execution\nresult = process_with_minimal_memory()\nreturn result\n"
+      },
+      "id": "9d472752-7f52-4447-b0f4-88d70128ba73",
+      "name": "Initial placer",
+      "type": "n8n-nodes-python.pythonFunction",
+      "typeVersion": 1,
+      "position": [
+        1240,
+        340
+      ]
+    },
+    {
+      "parameters": {
+        "functionCode": "import json\nimport subprocess\nimport sys\nimport gc\n\ndef process_with_minimal_memory():\n    script_path = './scripts/04_initial_placement_visualizer.py'  # 👈 CHANGE ONLY THIS PATH\n    \n    # Convert items to single dict if it's a list\n    if isinstance(items, list) and len(items) == 1:\n        payload = items[0]\n    elif isinstance(items, list):\n        payload = {\"batch\": items}  # Wrap multiple items\n    else:\n        payload = items\n    \n    proc = subprocess.Popen(\n        ['python3', script_path],\n        stdin=subprocess.PIPE,\n        stdout=subprocess.PIPE,\n        stderr=subprocess.PIPE,\n        text=True,\n    )\n    \n    # Send JSON efficiently\n    json_data = json.dumps(payload)\n    stdout, stderr = proc.communicate(json_data)\n    \n    # Cleanup input data immediately\n    del json_data, payload\n    gc.collect()\n    \n    if stderr:\n        print(stderr, file=sys.stderr)\n    \n    # Parse result\n    response = json.loads(stdout)\n    del stdout\n    \n    # Return in n8n format\n    if isinstance(response, list):\n        return response\n    else:\n        return [response]\n\n# Main execution\nresult = process_with_minimal_memory()\nreturn result\n"
+      },
+      "id": "efeb373a-1a0e-4f24-9b61-2ada16836bca",
+      "name": "Initial placement visualizer",
+      "type": "n8n-nodes-python.pythonFunction",
+      "typeVersion": 1,
+      "position": [
+        1420,
+        340
+      ]
+    },
+    {
+      "parameters": {
+        "batchSize": "=1",
+        "options": {
+          "reset": false
+        }
+      },
+      "id": "3c0de734-f951-4aaf-bab1-bd59489e0f48",
+      "name": "Batcher",
+      "type": "n8n-nodes-base.splitInBatches",
+      "typeVersion": 2,
+      "position": [
+        800,
+        360
+      ]
+    },
+    {
+      "parameters": {
+        "functionCode": "import json\nimport subprocess\nimport sys\nimport gc\n\ndef process_with_minimal_memory():\n    script_path = './scripts/05_pareto_frontier_visualizer.py'  # 👈 CHANGE ONLY THIS PATH\n    \n    # Convert items to single dict if it's a list\n    if isinstance(items, list) and len(items) == 1:\n        payload = items[0]\n    elif isinstance(items, list):\n        payload = {\"batch\": items}  # Wrap multiple items\n    else:\n        payload = items\n    \n    proc = subprocess.Popen(\n        ['python3', script_path],\n        stdin=subprocess.PIPE,\n        stdout=subprocess.PIPE,\n        stderr=subprocess.PIPE,\n        text=True,\n    )\n    \n    # Send JSON efficiently\n    json_data = json.dumps(payload)\n    stdout, stderr = proc.communicate(json_data)\n    \n    # Cleanup input data immediately\n    del json_data, payload\n    gc.collect()\n    \n    if stderr:\n        print(stderr, file=sys.stderr)\n    \n    # Parse result\n    response = json.loads(stdout)\n    del stdout\n    \n    # Return in n8n format\n    if isinstance(response, list):\n        return response\n    else:\n        return [response]\n\n# Main execution\nresult = process_with_minimal_memory()\nreturn result\n"
+      },
+      "id": "c303c541-42a8-4659-8003-3f7bf2f93781",
+      "name": "Visualize pareto frontier",
+      "type": "n8n-nodes-python.pythonFunction",
+      "typeVersion": 1,
+      "position": [
+        1140,
+        560
+      ]
+    },
+    {
+      "parameters": {
+        "jsCode": "const items = $input.all();\n\n// Keep only items that have json and at least one key\nconst filtered = items.filter(i =>\n  i.json && typeof i.json === 'object' && Object.keys(i.json).length > 0\n);\n\n// Return in valid n8n format\nreturn filtered.map(i => ({ json: i.json }));\n\n\n"
+      },
+      "id": "4d2e0f38-bc57-46ad-a6e1-a8454197fb21",
+      "name": "Filter",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 1,
+      "position": [
+        980,
+        560
+      ]
+    }
+  ],
+  "pinData": {},
+  "connections": {
+    "When clicking \"Execute Workflow\"": {
+      "main": [
+        [
+          {
+            "node": "Load tech lib",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Load tech lib": {
+      "main": [
+        [
+          {
+            "node": "Set seed + Num_Blocks + Repetitions",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Code": {
+      "main": [
+        [
+          {
+            "node": "Batcher",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Set seed + Num_Blocks + Repetitions": {
+      "main": [
+        [
+          {
+            "node": "Code",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Generate blocks": {
+      "main": [
+        [
+          {
+            "node": "Initial placer",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Initial placer": {
+      "main": [
+        [
+          {
+            "node": "Initial placement visualizer",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Initial placement visualizer": {
+      "main": [
+        [
+          {
+            "node": "Batcher",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Batcher": {
+      "main": [
+        [
+          {
+            "node": "Generate blocks",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Filter",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Filter": {
+      "main": [
+        [
+          {
+            "node": "Visualize pareto frontier",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": false,
+  "settings": {},
+  "versionId": "2dfaf1b1-6403-4f13-816c-d36391679187",
+  "id": "1",
+  "meta": {
+    "instanceId": "1bafb9c188fe6ca1bd9fcebdda2cba4a15931632499d6394bb1323640e1f70db"
+  },
+  "tags": []
+}
