@@ -1,6 +1,12 @@
+#Temporary folders
 init_placement/
 json_files/
 pareto_frontier/
+
+#Temp files start with test_
+test_*
+
+#Python stuff
 __pycache__/
 *.pyc
 
