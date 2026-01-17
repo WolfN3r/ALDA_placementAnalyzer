@@ -12,8 +12,8 @@
       "comment": "Width will be snapped to this step (not grid)"
     },
     "multiplier_range": {
-      "min": 2,
-      "max": 16,
+      "min": 8,
+      "max": 32,
       "comment": "Even numbers only, range: [min, max]"
     },
     "num_fingers_range": {
@@ -22,10 +22,10 @@
       "comment": "Number of fingers per transistor"
     },
     "aspect_ratio": {
-      "min_aspect_min": 0.3,
+      "min_aspect_min": 0.2,
       "min_aspect_max": 0.8,
       "max_aspect_min": 1.2,
-      "max_aspect_max": 3.0,
+      "max_aspect_max": 2.0,
       "comment": "Random ranges for min and max aspect ratios"
     }
   },
@@ -81,9 +81,9 @@
     }
   },
   "netlist": {
-    "density": 2,
+    "density": 1.5,
     "pins_per_block_min": 3,
-    "pins_per_block_max": 6,
+    "pins_per_block_max": 5,
     "comment": "Netlist generation: N_nets = density * N_blocks, pins per block 3-6"
   },
   "validation": {
