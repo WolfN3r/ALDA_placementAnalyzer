@@ -1,3 +1,6 @@
 init_placement/
 json_files/
 pareto_frontier/
+__pycache__/
+*.pyc
+
