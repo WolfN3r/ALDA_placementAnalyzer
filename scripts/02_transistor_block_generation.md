@@ -54,8 +54,15 @@ python3 transistor_block_generator.py 10 42
        "multiplier_range": { "min": 2, "max": 16 },
        "aspect_ratio": { ... }
      },
+     "design_constraints": {
+       "nmos1v_nat": {
+         "L": { "min": 0.1, "max": 2.0 },
+         "W": { "min": 0.5, "max": 20.0 }
+       },
+       ...
+     },
      "netlist": {
-       "density": 2.5,
+       "density": 2,
        "pins_per_block_min": 3,
        "pins_per_block_max": 6
      }
@@ -79,6 +86,7 @@ python3 transistor_block_generator.py 10 42
 - **Even multipliers**: Uses even numbers (2, 4, 6, 8, ...) for more variability
 - **Variant validation**: Ensures at least one valid variant per block
 - **Configurable parameters**: External JSON configuration for easy tuning
+- **Design-specific constraints**: Separate size ranges per device type
 - **Variant tracking**: Each variant has `is_used` field for placement tracking
 
 ## Directory Structure
@@ -141,11 +149,9 @@ The `lib/generation_config.json` file contains tunable parameters for the genera
 {
   "generation_params": {
     "length_range": {
-      "max_fraction": 0.2,
       "step": 0.01
     },
     "width_range": {
-      "max_fraction": 0.1,
       "step": 0.05
     },
     "multiplier_range": {
@@ -163,6 +169,24 @@ The `lib/generation_config.json` file contains tunable parameters for the genera
       "max_aspect_max": 3.0
     }
   },
+  "design_constraints": {
+    "nmos1v_nat": {
+      "L": { "min": 0.1, "max": 2.0 },
+      "W": { "min": 0.5, "max": 20.0 }
+    },
+    "nmos2v_nat": {
+      "L": { "min": 0.4, "max": 3.0 },
+      "W": { "min": 1.0, "max": 30.0 }
+    },
+    "pmos1v_nat": {
+      "L": { "min": 0.1, "max": 2.0 },
+      "W": { "min": 0.5, "max": 20.0 }
+    },
+    "pmos2v_nat": {
+      "L": { "min": 0.4, "max": 3.0 },
+      "W": { "min": 1.0, "max": 30.0 }
+    }
+  },
   "validation": {
     "max_generation_attempts": 10
   }
@@ -171,14 +195,19 @@ The `lib/generation_config.json` file contains tunable parameters for the genera
 
 ### Configuration Parameters
 
-- **length_range.max_fraction**: Maximum length as fraction of device max (0.2 = 20%)
+**Generation Parameters:**
 - **length_range.step**: Step size for length quantization (default: 0.01 µm = 10nm)
-- **width_range.max_fraction**: Maximum width as fraction of device max (0.1 = 10%)
 - **width_range.step**: Step size for width quantization (default: 0.05 µm = 50nm)
 - **multiplier_range.min/max**: Range for even multipliers (2, 4, 6, 8, ...)
 - **num_fingers_range.min/max**: Range for number of fingers per transistor
 - **aspect_ratio**: Random ranges for min/max aspect ratios
 - **validation.max_generation_attempts**: Maximum attempts to generate valid block
+
+**Design Constraints (per device type):**
+- Each device type has independent L and W ranges
+- Designer can adjust these values to match circuit requirements
+- Values must stay within technology limits from `gpdk090_tech_simple.json`
+- Example: 1V devices typically use smaller sizes than 2V devices
 
 **Important**: Width and length are snapped to their respective `step` values (not the manufacturing grid). This allows designers to use multiples of minimum dimensions. All other dimensions (bounding boxes, spacing envelopes) are still snapped to the manufacturing grid.
 
@@ -194,7 +223,7 @@ The script automatically generates a netlist that connects blocks through pin cl
 2. **Net Creation**: Pins are grouped into electrical nets
    - Each net connects 2-4 pins from different blocks
    - Target number of nets: `density × num_blocks`
-   - Example: 10 blocks × 2.5 density = 25 nets
+   - Example: 10 blocks × 2 density = 20 nets
 
 3. **Clustering**: Ensures realistic connectivity
    - Each block has at least 2 connections
@@ -205,7 +234,7 @@ The script automatically generates a netlist that connects blocks through pin cl
 ```json
 {
   "netlist": {
-    "density": 2.5,           // Nets per block (higher = more connections)
+    "density": 2,             // Nets per block (higher = more connections)
     "pins_per_block_min": 3,  // Minimum pins per block
     "pins_per_block_max": 6   // Maximum pins per block
   }
@@ -229,11 +258,6 @@ The script automatically generates a netlist that connects blocks through pin cl
 }
 ```
 
-### Usage in Placement
-- Use nets to calculate wirelength
-- Identify which blocks need to be close together
-- Each net represents an electrical connection that needs routing
-
 ## Output Structure
 
 ### Output JSON Format
@@ -249,7 +273,7 @@ The script automatically generates a netlist that connects blocks through pin cl
       "block_id": 0,
       "device_type": "nmos1v_nat",
       "parameters": {
-        "width": 2.835,
+        "width": 2.85,
         "length": 0.15,
         "multiplier": 8,
         "num_fingers": 2,
@@ -299,7 +323,7 @@ The script automatically generates a netlist that connects blocks through pin cl
 ### Block Information
 - `block_id`: Sequential identifier
 - `device_type`: Transistor type (nmos1v_nat, nmos2v_nat, pmos1v_nat, pmos2v_nat)
-- `parameters`: Physical parameters (W, L, M, NF) - **all snapped to grid**
+- `parameters`: Physical parameters (W, L, M, NF) - **snapped to step**
 - `generation_attempts`: Number of attempts needed to generate valid block
 
 ### Layout Variants
@@ -343,13 +367,31 @@ This separation allows designers to use multiples of minimum W/L (e.g., 0.05 µm
 - Length: 0.15 µm (step 0.01)
 - BBox x_max: 7.935 µm (grid 0.005)
 
+### Design Constraints
+
+The script uses **design-specific size ranges** from `generation_config.json` rather than technology maximums:
+
+```json
+"design_constraints": {
+  "nmos1v_nat": {
+    "L": { "min": 0.1, "max": 2.0 },  // Designer adjustable
+    "W": { "min": 0.5, "max": 20.0 }
+  }
+}
+```
+
+**Benefits:**
+- Each device type has independent size ranges
+- More realistic transistor sizes for analog design
+- Easy to adjust for different circuit types
+- Values validated against technology limits
+
 ### Even Multipliers
 The script uses even numbers (2, 4, 6, 8, 10, ...) instead of just powers of 2. This provides more variability:
 - M=2: Simple pair
 - M=4: Two pairs
 - M=6: Three pairs (less common but valid)
 - M=8: Four pairs
-- etc.
 
 ### Variant Validation
 If a parameter combination doesn't produce any valid variants (due to aspect ratio constraints), the script automatically retries with new random parameters up to `max_generation_attempts` times.
@@ -390,24 +432,15 @@ Test n8n mode:
 cat test_n8n_input.json | python3 transistor_block_generator.py > test_output.json
 ```
 
-Verify grid snapping:
-```bash
-python3 -c "
-import json
-with open('json_files/blocks_seed42_n5.json') as f:
-    data = json.load(f)
-width = data['blocks'][0]['parameters']['width']
-grid = 0.005
-print(f'Width: {width}')
-print(f'Grid aligned: {(width / grid) % 1 == 0}')
-"
-```
-
 ## Troubleshooting
 
 ### No variants generated
 - **Cause**: Aspect ratio constraints too strict for given W/L
 - **Fix**: Widen aspect ratio range in config or adjust W/L ranges
+
+### Sizes outside expected range
+- **Cause**: Design constraints not matching circuit needs
+- **Fix**: Adjust `design_constraints` in `generation_config.json`
 
 ### Low netlist density
 - **Cause**: Not enough pins or too few blocks
@@ -425,29 +458,27 @@ print(f'Grid aligned: {(width / grid) % 1 == 0}')
 - **Cause**: Missing lib directory or files
 - **Fix**: Ensure `lib/n8n_json_handler.py` and config files exist
 
-## Dependencies
-
-- Python 3.6+
-- Standard library only: `json`, `random`, `sys`, `os`, `pathlib`
-- `n8n_json_handler` (included in lib/)
-
 ## What to Look For When Revisiting This Code
 
 ### In `generation_config.json`:
-1. **Step sizes** (`length_range.step`, `width_range.step`) - Controls W/L quantization
+1. **Design constraints** - Per-device-type size ranges
+   - Adjust L/W min/max for each transistor type
+   - Must stay within technology limits
+
+2. **Step sizes** (`length_range.step`, `width_range.step`) - Controls W/L quantization
    - Larger steps = coarser dimensions (easier to work with)
    - Smaller steps = finer control (more options)
 
-2. **Multiplier range** (`multiplier_range.min/max`) - Device sizing
+3. **Multiplier range** (`multiplier_range.min/max`) - Device sizing
    - Even numbers only (2, 4, 6, ...)
    - Higher max = larger devices possible
 
-3. **Aspect ratio constraints** - Block shape limits
+4. **Aspect ratio constraints** - Block shape limits
    - Low min_aspect = allow tall/thin blocks
    - High max_aspect = allow wide blocks
 
-4. **Netlist density** - Connection complexity
-   - `density = 2.5` means ~2.5 nets per block
+5. **Netlist density** - Connection complexity
+   - `density = 2` means ~2 nets per block
    - Higher = more interconnected (harder placement)
 
 ### In output JSON:
@@ -480,4 +511,5 @@ print(f'Grid aligned: {(width / grid) % 1 == 0}')
 - Each block is guaranteed to have at least one valid variant
 - Seed ensures reproducible random generation
 - Configuration is externalized in `generation_config.json` for easy tuning
+- Design constraints are separate from technology constraints for flexibility
 - No verbose output by default (runs silently in background)

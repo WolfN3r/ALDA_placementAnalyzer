@@ -234,9 +234,7 @@ def wmi_generate_random_blocks(tech_file, config, num_of_blocks, seed):
     
     # Extract configuration parameters
     gen_params = config["generation_params"]
-    length_max_fraction = gen_params["length_range"]["max_fraction"]
     length_step = gen_params["length_range"]["step"]
-    width_max_fraction = gen_params["width_range"]["max_fraction"]
     width_step = gen_params["width_range"]["step"]
     multiplier_min = gen_params["multiplier_range"]["min"]
     multiplier_max = gen_params["multiplier_range"]["max"]
@@ -248,6 +246,9 @@ def wmi_generate_random_blocks(tech_file, config, num_of_blocks, seed):
     min_aspect_max = aspect_config["min_aspect_max"]
     max_aspect_min = aspect_config["max_aspect_min"]
     max_aspect_max = aspect_config["max_aspect_max"]
+    
+    # Get design constraints
+    design_constraints = config["design_constraints"]
     
     blocks = []
     
@@ -261,12 +262,17 @@ def wmi_generate_random_blocks(tech_file, config, num_of_blocks, seed):
                 device_type = random.choice(device_types)
                 device = tech_file["device_constraints"][device_type]
                 
-                # Generate random parameters within constraints, snap to step
-                length_max = min(device["L"]["max"], device["L"]["max"] * length_max_fraction)
-                length = snap_to_step(random.uniform(device["L"]["min"], length_max), length_step)
+                # Get design constraints for this device type
+                design_device = design_constraints[device_type]
                 
-                width_max = min(device["W"]["max"], device["W"]["max"] * width_max_fraction)
-                width = snap_to_step(random.uniform(device["W"]["min"], width_max), width_step)
+                # Generate random parameters within design constraints, snap to step
+                length_min = design_device["L"]["min"]
+                length_max = design_device["L"]["max"]
+                length = snap_to_step(random.uniform(length_min, length_max), length_step)
+                
+                width_min = design_device["W"]["min"]
+                width_max = design_device["W"]["max"]
+                width = snap_to_step(random.uniform(width_min, width_max), width_step)
                 
                 # Generate even multiplier
                 multiplier = random.randrange(multiplier_min, multiplier_max + 1, 2)

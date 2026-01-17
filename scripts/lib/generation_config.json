@@ -2,16 +2,14 @@
   "generation_params": {
     "comment": "Parameters for random block generation",
     "length_range": {
-      "description": "Length range as fraction of device max",
-      "max_fraction": 0.2,
+      "description": "Length quantization step",
       "step": 0.01,
-      "comment": "Length will be from device_min to device_max * max_fraction, snapped to step (not grid)"
+      "comment": "Length will be snapped to this step (not grid)"
     },
     "width_range": {
-      "description": "Width range as fraction of device max", 
-      "max_fraction": 0.1,
+      "description": "Width quantization step", 
       "step": 0.05,
-      "comment": "Width will be from device_min to device_max * max_fraction, snapped to step (not grid)"
+      "comment": "Width will be snapped to this step (not grid)"
     },
     "multiplier_range": {
       "min": 2,
@@ -29,6 +27,57 @@
       "max_aspect_min": 1.2,
       "max_aspect_max": 3.0,
       "comment": "Random ranges for min and max aspect ratios"
+    }
+  },
+  "design_constraints": {
+    "comment": "Design-specific size constraints for each device type (designer-adjustable)",
+    "nmos1v_nat": {
+      "L": {
+        "min": 0.4,
+        "max": 2.0,
+        "comment": "Length range for 1V NMOS (low-power analog typical)"
+      },
+      "W": {
+        "min": 1.0,
+        "max": 20.0,
+        "comment": "Width range for 1V NMOS"
+      }
+    },
+    "nmos2v_nat": {
+      "L": {
+        "min": 0.8,
+        "max": 4.0,
+        "comment": "Length range for 2V NMOS (power stages typical)"
+      },
+      "W": {
+        "min": 1.4,
+        "max": 30.0,
+        "comment": "Width range for 2V NMOS"
+      }
+    },
+    "pmos1v_nat": {
+      "L": {
+        "min": 0.4,
+        "max": 2.0,
+        "comment": "Length range for 1V PMOS (low-power analog typical)"
+      },
+      "W": {
+        "min": 1.0,
+        "max": 20.0,
+        "comment": "Width range for 1V PMOS"
+      }
+    },
+    "pmos2v_nat": {
+      "L": {
+        "min": 0.8,
+        "max": 4.0,
+        "comment": "Length range for 2V PMOS (power stages typical)"
+      },
+      "W": {
+        "min": 1.4,
+        "max": 30.0,
+        "comment": "Width range for 2V PMOS"
+      }
     }
   },
   "netlist": {

@@ -11,12 +11,20 @@ from pathlib import Path
 # Configuration
 DISPLAY_MODE = 0  # 0 = save PNG, 1 = show with Xming
 
+# Device type colors: (fill_color, edge_color, linestyle)
+DEVICE_COLORS = {
+    "nmos1v_nat": ("#FFB6B6", "#FF4444", "--"),  # Light coral / Red
+    "nmos2v_nat": ("#B6FFB6", "#44FF44", "--"),  # Light green / Green
+    "pmos1v_nat": ("#B6B6FF", "#4444FF", "--"),  # Light blue / Blue
+    "pmos2v_nat": ("#FFB6FF", "#FF44FF", "--")   # Light pink / Magenta
+}
+
 # Set matplotlib backend before importing pyplot
 import matplotlib
 if DISPLAY_MODE == 1:
-    matplotlib.use('TkAgg')  # Use TkAgg backend for Xming
+    matplotlib.use('TkAgg')
 else:
-    matplotlib.use('Agg')  # Use Agg backend for saving PNG
+    matplotlib.use('Agg')
 
 import matplotlib.pyplot as plt
 from matplotlib.patches import Rectangle
@@ -31,7 +39,7 @@ def generate_distinct_colors(num_colors):
     """Generate distinct colors using HSV"""
     colors = []
     for i in range(num_colors):
-        hue = (i * 0.618033988749895) % 1.0  # Golden ratio
+        hue = (i * 0.618033988749895) % 1.0
         saturation = 0.8 + (i % 3) * 0.1
         value = 0.7 + (i % 2) * 0.2
         r, g, b = colorsys.hsv_to_rgb(hue, saturation, value)
@@ -43,42 +51,31 @@ def process_placement_data(json_data):
     """Process and visualize placement data"""
     
     try:
-        # Input validation
         if not json_data:
-            return {
-                "success": False,
-                "error": "Input JSON data is empty"
-            }
+            return {"success": False, "error": "Input JSON data is empty"}
         
-        # Extract data
         data = json_data[0] if isinstance(json_data, list) else json_data
         
         if 'placement' not in data or 'cost_function' not in data:
-            return {
-                "success": False,
-                "error": "Invalid JSON structure - missing 'placement' or 'cost_function'"
-            }
+            return {"success": False, "error": "Invalid JSON structure"}
         
         placement = data['placement']
         cost_function = data['cost_function']
         netlist = data.get('netlist', {'nets': []})
         placed_blocks = placement['placed_blocks']
         
-        # Generate colors for blocks
-        block_colors = generate_distinct_colors(len(placed_blocks))
-        
-        # Envelope type colors (fixed for consistency)
+        # Envelope colors using device type colors
         envelope_colors = {
-            'nmos1v_nat': '#FF0000',  # Red
-            'nmos2v_nat': '#00FF00',  # Green
-            'pmos1v_nat': '#0000FF',  # Blue
-            'pmos2v_nat': '#FF00FF'   # Magenta
+            'nmos1v_nat': DEVICE_COLORS['nmos1v_nat'][1],
+            'nmos2v_nat': DEVICE_COLORS['nmos2v_nat'][1],
+            'pmos1v_nat': DEVICE_COLORS['pmos1v_nat'][1],
+            'pmos2v_nat': DEVICE_COLORS['pmos2v_nat'][1]
         }
         
         # Net colors
         net_colors = generate_distinct_colors(len(netlist['nets']))
         
-        # Calculate shift to make everything positive (based on ALL envelopes)
+        # Calculate shift
         min_x = float('inf')
         min_y = float('inf')
         max_x = float('-inf')
@@ -94,34 +91,36 @@ def process_placement_data(json_data):
         shift_x = -min_x if min_x < 0 else 0
         shift_y = -min_y if min_y < 0 else 0
         
-        # Calculate actual bounding box after shift (around ALL envelopes)
-        bbox_x_min = 0.0  # After shift, minimum is always at origin
+        bbox_x_min = 0.0
         bbox_y_min = 0.0
         bbox_x_max = max_x + shift_x
         bbox_y_max = max_y + shift_y
         
-        # Create figure with two subplots
+        # Create figure
         fig = plt.figure(figsize=(16, 8))
-        ax1 = plt.subplot(121)  # Left: Placement
-        ax2 = plt.subplot(122)  # Right: Metrics table
+        ax1 = plt.subplot(121)
+        ax2 = plt.subplot(122)
         
         fig.suptitle('Placement Visualization', fontsize=16, fontweight='bold')
         
-        # ===== LEFT: Block Placement =====
+        # LEFT: Block Placement
         ax1.set_title('Block Placement with Envelopes', fontsize=14)
         ax1.set_aspect('equal')
         ax1.set_xlabel('X', fontsize=12)
         ax1.set_ylabel('Y', fontsize=12)
         ax1.grid(True, alpha=0.3)
         
-        # Track block centers for nets
         block_centers = {}
         
         # Draw blocks and envelopes
         for idx, block in enumerate(placed_blocks):
             block_id = block['block_id']
+            device_type = block['device_type']
             main_bbox = block['main_bbox']
             envelopes = block['envelope']
+            
+            # Get device color
+            block_color = DEVICE_COLORS[device_type][0]
             
             # Shift coordinates
             main_x_min = main_bbox['x_min'] + shift_x
@@ -132,17 +131,16 @@ def process_placement_data(json_data):
             main_width = main_x_max - main_x_min
             main_height = main_y_max - main_y_min
             
-            # Store center for nets
             center_x = main_x_min + main_width / 2
             center_y = main_y_min + main_height / 2
             block_centers[block_id] = (center_x, center_y)
             
-            # Draw main block (filled with color)
+            # Draw main block with device type color
             main_rect = Rectangle(
                 (main_x_min, main_y_min), 
                 main_width, 
                 main_height,
-                facecolor=block_colors[idx], 
+                facecolor=block_color,
                 edgecolor='black', 
                 linewidth=2,
                 alpha=0.8,
@@ -150,17 +148,26 @@ def process_placement_data(json_data):
             )
             ax1.add_patch(main_rect)
             
-            # Add block label
+            # Add block ID label
             ax1.text(
                 center_x, center_y, 
                 f'B{block_id}',
                 ha='center', va='center', 
                 fontweight='bold', 
-                fontsize=14,
+                fontsize=11,
                 zorder=3
             )
             
-            # Draw envelopes (just contours, no fill)
+            # Add device type label below block ID
+            ax1.text(
+                center_x, center_y - main_height * 0.2, 
+                device_type,
+                ha='center', va='center', 
+                fontsize=6,
+                zorder=3
+            )
+            
+            # Draw envelopes
             for env_type, env in envelopes.items():
                 env_x_min = env['x_min'] + shift_x
                 env_y_min = env['y_min'] + shift_y
@@ -186,7 +193,6 @@ def process_placement_data(json_data):
         # Draw nets
         for net_idx, net in enumerate(netlist['nets']):
             pins = net['pins']
-            # Extract block IDs from pin names (format: "B0_P1")
             block_ids = []
             for pin in pins:
                 if pin.startswith('B') and '_P' in pin:
@@ -194,7 +200,6 @@ def process_placement_data(json_data):
                     if bid in block_centers:
                         block_ids.append(bid)
             
-            # Draw lines between all blocks in this net
             if len(block_ids) >= 2:
                 for i in range(len(block_ids)):
                     for j in range(i + 1, len(block_ids)):
@@ -208,7 +213,7 @@ def process_placement_data(json_data):
                             zorder=0
                         )
         
-        # Draw bounding box (red, on top) - around ALL envelopes after shift
+        # Draw bounding box
         bbox_width = bbox_x_max - bbox_x_min
         bbox_height = bbox_y_max - bbox_y_min
         
@@ -224,41 +229,33 @@ def process_placement_data(json_data):
         )
         ax1.add_patch(bbox_rect)
         
-        # Set axis limits with margin
         margin = max(bbox_width, bbox_height) * 0.05
         ax1.set_xlim(bbox_x_min - margin, bbox_x_max + margin)
         ax1.set_ylim(bbox_y_min - margin, bbox_y_max + margin)
         
-        # Create legend
+        # Legend
         legend_elements = []
-        
-        # Envelope types
         for env_type, color in envelope_colors.items():
             legend_elements.append(
                 Line2D([0], [0], color=color, linewidth=2, linestyle='--', 
                        label=f'{env_type} envelope')
             )
-        
-        # Bounding box
         legend_elements.append(
             Line2D([0], [0], color='red', linewidth=3, linestyle='-', 
                    label='Bounding Box')
         )
-        
-        # Nets
         if len(netlist['nets']) > 0:
             legend_elements.append(
                 Line2D([0], [0], color='gray', linewidth=2, linestyle='-', 
                        label='Nets', alpha=0.6)
             )
         
-        ax1.legend(handles=legend_elements, loc='upper left', fontsize=9)
+        ax1.legend(handles=legend_elements, loc='upper left', fontsize=6)
         
-        # ===== RIGHT: Metrics Table =====
+        # RIGHT: Metrics Table
         ax2.axis('off')
         ax2.set_title('Placement Metrics', fontsize=14, fontweight='bold', pad=20)
         
-        # Create table data
         gen_params = data.get('generation_params', {})
         
         table_data = [
@@ -284,24 +281,21 @@ def process_placement_data(json_data):
             ['  Height', f"{bbox_height:.4f}"],
         ]
         
-        # Create table
         table = ax2.table(
             cellText=table_data,
             cellLoc='left',
             loc='center',
-            colWidths=[0.25, 0.25]  # Reduced from 0.5, 0.5 to 0.25, 0.25 (50% narrower)
+            colWidths=[0.25, 0.25]
         )
         
         table.auto_set_font_size(False)
-        table.set_fontsize(7)  # Increased from 6 to 7 (20% larger than 6)
+        table.set_fontsize(7)
         table.scale(1, 1)
         
-        # Style header row
         for i in range(2):
             table[(0, i)].set_facecolor('#4CAF50')
             table[(0, i)].set_text_props(weight='bold', color='white')
         
-        # Style section headers
         section_rows = [2, 5, 10, 12, 17]
         for row in section_rows:
             table[(row, 0)].set_facecolor('#E8F5E9')
@@ -309,17 +303,13 @@ def process_placement_data(json_data):
         
         plt.tight_layout()
         
-        # Display or save based on DISPLAY_MODE
         if DISPLAY_MODE == 1:
-            # Show with Xming
             plt.show()
         else:
-            # Save PNG with proper naming - use script directory
             script_dir = Path(__file__).parent
             placement_dir = script_dir / 'init_placement'
             placement_dir.mkdir(exist_ok=True)
             
-            gen_params = data.get('generation_params', {})
             seed = gen_params.get('seed', 0)
             num_blocks = gen_params.get('num_of_blocks', 0)
             
@@ -327,7 +317,6 @@ def process_placement_data(json_data):
             plt.savefig(output_path, dpi=300, bbox_inches='tight')
             plt.close()
         
-        # Return result (extract just generation_params and cost_function)
         result = {
             "generation_params": gen_params,
             "cost_function": cost_function
@@ -336,17 +325,12 @@ def process_placement_data(json_data):
         return result
         
     except Exception as e:
-        return {
-            "success": False,
-            "error": str(e),
-            "message": "Visualization failed"
-        }
+        return {"success": False, "error": str(e), "message": "Visualization failed"}
 
 
 def process_n8n_input(json_data):
     """Process input from n8n"""
     result = process_placement_data(json_data)
-    # Ensure UTF-8 safe output
     return json.loads(json.dumps(result, ensure_ascii=False))
 
 
@@ -358,27 +342,21 @@ def main_standalone(input_file):
         print(f"Error: Input file not found: {input_file}")
         sys.exit(1)
     
-    # Load input
     with open(input_path, 'r', encoding='utf-8') as f:
         json_data = json.load(f)
     
-    # Process visualization
     result = process_placement_data(json_data)
-    
-    # Print result
     print(json.dumps(result, indent=2, ensure_ascii=False))
 
 
 if __name__ == "__main__":
     if len(sys.argv) == 2:
-        # Standalone mode with input file
         main_standalone(sys.argv[1])
     elif len(sys.argv) == 1:
-        # n8n mode (no arguments)
         n8n_processor = create_n8n_processor(process_n8n_input)
         n8n_processor()
     else:
         print("Usage:")
-        print("  Standalone: python3 04_placement_visualizer.py <input_json_file>")
-        print("  n8n mode: cat input.json | python3 04_placement_visualizer.py")
+        print("  Standalone: python3 04_initial_placement_visualizer.py <input_json_file>")
+        print("  n8n mode: cat input.json | python3 04_initial_placement_visualizer.py")
         sys.exit(1)

@@ -4,3 +4,12 @@ n8n/*
 !n8n/workflows/*.json
 logs/*
 !logs/.gitkeep
+.env
+
+#IDE
+.vscode/
+.idea/
+
+# OS junk
+.DS_Store
+Thumbs.db

@@ -1,171 +1,170 @@
-# Placement Visualizer (04_placement_visualizer.py)
+# Placement Visualization (04_visualize_placement.py)
 
 ## Overview
 
-A simple visualizer for analog circuit block placement that shows the physical layout with envelopes, nets, and key metrics.
-
-## Configuration
-
-```python
-DISPLAY_MODE = 0  # 0 = save PNG, 1 = show with Xming
-```
-
-Set `DISPLAY_MODE = 1` to display with Xming on your computer.
-Set `DISPLAY_MODE = 0` to save PNG files to `placement/` directory.
-
-## Features
-
-### Left Panel: Block Placement
-- **Blocks**: Filled rectangles with distinct colors, labeled as B0, B1, B2, etc.
-- **Main Bounding Box (main_bbox)**: The actual block outline
-- **Envelopes**: Four types shown as dashed contours:
-  - `nmos1v_nat`: Red dashed line
-  - `nmos2v_nat`: Green dashed line
-  - `pmos1v_nat`: Blue dashed line
-  - `pmos2v_nat`: Magenta dashed line
-- **Nets**: Colored lines connecting block centers according to netlist
-- **Bounding Box**: Red solid rectangle showing total layout bounds
-  - Surrounds ALL envelopes from all four sides
-  - Starts at origin (0, 0) after coordinate shifting
-
-### Right Panel: Metrics Table
-- Generation parameters (blocks count, seed)
-- Cost function result
-- Area, wirelength (HPWL), aspect ratio
-- Weights breakdown
-- Bounding box dimensions
+A visualization tool for analog circuit block placement results. Creates visual plots showing block positions with device-type color coding and spacing envelopes.
 
 ## Key Features
 
-✓ Automatic coordinate shifting (ensures all blocks visible in first quadrant)
-✓ Correct bounding box (surrounds all envelopes, starts at origin)
-✓ Color-coded envelopes with legend
-✓ Net visualization between connected blocks
-✓ Clear layering (nets → envelopes → blocks → bounding box)
-✓ Compact table display (50% smaller)
-✓ High-resolution output (300 DPI PNG)
-✓ Dual display mode (Xming / save PNG)
-✓ Dual-mode operation (n8n + standalone)
+✓ **Device-Type Color Coding**: Blocks colored by transistor type
+✓ **Matching Envelope Colors**: Each device type has consistent colors for blocks and envelopes
+✓ **Type Labels**: Device type displayed below each block name
+✓ **Metrics Display**: Comprehensive table showing placement quality metrics
+✓ **Net Visualization**: Shows connections between blocks (as gray lines)
 
-## Usage
+## Device Type Color Scheme
 
-### Display Mode Configuration
+Each transistor type has a unique, pleasant color scheme with matching envelope colors:
 
-Edit the `DISPLAY_MODE` variable at the top of the script:
-- `DISPLAY_MODE = 0`: Save PNG to `placement/` directory
-- `DISPLAY_MODE = 1`: Show with Xming (interactive display)
+| Device Type | Block Color | Envelope Color | Description |
+|-------------|-------------|----------------|-------------|
+| `nmos1v_nat` | Light Coral (#FFB6B6) | Red (#FF4444) | N-type MOS, 1V, natural threshold |
+| `nmos2v_nat` | Light Green (#B6FFB6) | Green (#44FF44) | N-type MOS, 2V, natural threshold |
+| `pmos1v_nat` | Light Blue (#B6B6FF) | Blue (#4444FF) | P-type MOS, 1V, natural threshold |
+| `pmos2v_nat` | Light Pink (#FFB6FF) | Magenta (#FF44FF) | P-type MOS, 2V, natural threshold |
 
-### Standalone Mode (Save PNG)
-```bash
-python3 04_placement_visualizer.py <placed_blocks.json>
-```
+## Visualization Layout
 
-Output:
-- Displays JSON with generation_params and cost_function
-- Saves visualization to `init_placement/init_placement_seed<X>_n<N>.png`
-- Directory is created relative to the script location
+### Left Panel: Block Placement
+- **Blocks**: Filled rectangles with device-type colors
+- **Block Labels**: Block ID (B0, B1, etc.) centered on block
+- **Type Labels**: Device type (e.g., "nmos1v_nat") below block ID in italic
+- **Envelopes**: Dashed rectangles showing spacing constraints for each device type
+- **Nets**: Gray lines connecting block centers (shows circuit connectivity)
+- **Bounding Box**: Red solid rectangle showing total layout area
 
-Example: `init_placement/init_placement_seed42_n5.png`
-
-### Standalone Mode (Show with Xming)
-1. Set `DISPLAY_MODE = 1` in the script
-2. Ensure Xming is running on your Windows machine
-3. Set DISPLAY environment variable on WSL: `export DISPLAY=:0`
-4. Run: `python3 04_placement_visualizer.py <placed_blocks.json>`
-
-### n8n Mode
-```bash
-cat placed_blocks.json | python3 04_placement_visualizer.py
-```
-
-Output:
-- JSON to stdout with generation_params and cost_function
-- Saves visualization based on DISPLAY_MODE setting
+### Right Panel: Metrics Table
+- Number of blocks and seed value
+- Area, wirelength, and aspect ratio
+- Cost function value
+- Optimization weights
+- Bounding box dimensions
 
 ## Input Format
 
-Expects JSON from `03_initial_placer.py` output with structure:
+Expects JSON output from `03_initial_placer.py`:
 ```json
 {
   "generation_params": {...},
+  "blocks": [...],
+  "netlist": {...},
   "placement": {
-    "placed_blocks": [...]
+    "placed_blocks": [
+      {
+        "block_id": 0,
+        "device_type": "nmos1v_nat",
+        "position": {...},
+        "main_bbox": {...},
+        "envelope": {...}
+      }
+    ]
   },
-  "cost_function": {...},
-  "netlist": {...}
+  "cost_function": {...}
 }
 ```
 
-## Output Format
+## Usage
 
-Returns simplified JSON:
-```json
-{
-  "generation_params": {
-    "num_of_blocks": 5,
-    "seed": 42
-  },
-  "cost_function": {
-    "area": 4269.8424,
-    "wirelength": 475.775,
-    "aspect_ratio": 0.313041,
-    "bounding_box": {...},
-    "weights": [0.4, 0.4, 0.2],
-    "target_aspect_ratio": 1.0,
-    "cost": 1898.341343
-  },
-  "visualization_saved": "init_placement/init_placement_seed42_n5.png"
-}
+```bash
+python3 04_visualize_placement.py <placement_json_file>
 ```
 
-Note: `visualization_saved` field only present when `DISPLAY_MODE = 0`
+### Example
+```bash
+python3 04_visualize_placement.py blocks_seed1_n2_placed.json
+```
+
+Output: `blocks_seed1_n2_placed_visualization.png`
+
+## Output
+
+- **Format**: PNG image (300 DPI, publication quality)
+- **Dimensions**: 16×8 inches (suitable for reports and presentations)
+- **File naming**: `<input_stem>_visualization.png`
 
 ## Dependencies
 
-- **Standard**: `json`, `sys`, `colorsys`, `pathlib`
-- **Matplotlib**: For visualization
-- **Custom Libraries** (from `lib/`):
-  - `n8n_json_handler.py` - n8n integration
+- **Standard Libraries**: `json`, `sys`, `pathlib`
+- **Visualization**: `matplotlib` (with `patches` module)
 
-## Color Scheme
+No special or external packages required beyond standard scientific Python stack.
 
-### Envelopes (Fixed)
-- `nmos1v_nat`: Red (#FF0000)
-- `nmos2v_nat`: Green (#00FF00)
-- `pmos1v_nat`: Blue (#0000FF)
-- `pmos2v_nat`: Magenta (#FF00FF)
+## Technical Details
 
-### Blocks & Nets
-- Generated using golden ratio HSV distribution for maximum distinction
+### Color Consistency
+- Block fill color: Light tint of device type color (80% alpha)
+- Envelope line color: Saturated version of device type color
+- Both use matching hue for visual coherence
 
-## Visual Hierarchy (Z-order)
+### Layout Rendering
+- Envelopes drawn with dashed lines (line style `--`)
+- Blocks have solid black borders for clarity
+- Coordinate system matches the placement coordinate system
+- Equal aspect ratio ensures undistorted geometry
 
-1. Background: Grid
-2. Nets (z=0): Behind everything
-3. Envelopes (z=1): Dashed contours
-4. Block fills (z=2): Colored rectangles
-5. Block labels (z=3): Text "B0", "B1", etc.
-6. Bounding box (z=4): Red outline on top
+### Text Placement
+- Block ID: Centered, 1.5 units above center, bold, 11pt
+- Device type: Centered, 1.5 units below center, italic, 8pt, dark gray
 
-## Example Output
+## Interpretation Guide
 
-The visualizer produces a two-panel figure:
-- **Left**: Physical layout with all geometric details
-- **Right**: Tabular metrics summary
+**Block Colors** indicate the type of transistor:
+- Red tones → NMOS 1V (fastest)
+- Green tones → NMOS 2V (higher voltage)
+- Blue tones → PMOS 1V (complementary to NMOS 1V)
+- Pink tones → PMOS 2V (complementary to NMOS 2V)
 
-Perfect for:
-- Quick visual inspection of placement quality
-- Debugging placement algorithms
-- Documenting results
-- Comparing different placements
+**Envelope Overlaps** show spacing constraints:
+- Different colored envelopes around each block
+- Spacing constraints prevent different device types from overlapping
+- Larger spacing for incompatible device types
 
-## Notes
+**Net Lines** show circuit connectivity:
+- Gray lines connect blocks that share nets
+- Shorter lines indicate better wirelength (lower cost)
 
-- Automatic shifting ensures all coordinates are positive (first quadrant)
-- Bounding box correctly calculated to surround ALL envelopes after shift
-- Bounding box always starts at origin (0, 0) after coordinate shift
-- Envelopes may extend beyond blocks (normal behavior for spacing constraints)
-- Net connections use block centers (pin positions not specified in current format)
-- Table is compact with 50% narrower columns and 20% larger font than original compressed version
-- PNG files saved to `init_placement/` directory (created in script's directory)
-- PNG output filenames: `init_placement_seed<X>_n<N>.png` where X=seed, N=num_blocks
+## Limitations
+
+- Assumes pins at block centers (simplified model)
+- Net visualization shows all-to-all connections (simplified routing)
+- No detailed pin-level routing shown
+- Single-layer visualization (no 3D stack-up)
+
+## Configuration
+
+To modify colors, edit the `DEVICE_COLORS` dictionary at the top of the script:
+```python
+DEVICE_COLORS = {
+    "nmos1v_nat": ("#FFB6B6", "#FF4444", "--"),  # (block_color, envelope_color, style)
+    ...
+}
+```
+
+## Integration with Placement Flow
+
+Typical workflow:
+1. Generate blocks: `01_block_generator.py`
+2. Create placement: `03_initial_placer.py`
+3. **Visualize results**: `04_visualize_placement.py` ← This script
+4. Analyze and iterate
+
+## Examples
+
+### Good Placement
+- Compact bounding box
+- Short net lines
+- Aspect ratio close to target (usually 1.0)
+- Minimal envelope overlaps
+
+### Poor Placement
+- Large empty spaces
+- Long net lines crossing entire layout
+- Extreme aspect ratios (very wide or tall)
+- Excessive envelope overlaps
+
+## Output Quality
+
+- 300 DPI resolution (publication quality)
+- Anti-aliased text and lines
+- Tight bounding box (minimal whitespace)
+- Professional color scheme suitable for technical reports
