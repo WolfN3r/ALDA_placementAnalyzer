@@ -27,7 +27,7 @@
     },
     {
       "parameters": {
-        "jsCode": "/**\n * n8n Code node (Run Once for All Items)\n * Duplicates the first input item gen_params.repetition times,\n * incrementing gen_params.seed each time.\n *\n * Output: array of items [{ json: ... }, { json: ... }, ...]\n * suitable for Split in Batches.\n */\n\nconst inputItems = $input.all();\nif (!inputItems.length) return [];\n\nconst inputJson = inputItems[0].json;\n\n// Basic validation\nif (!inputJson.gen_params) {\n  throw new Error('Input JSON must contain \"gen_params\".');\n}\nif (typeof inputJson.gen_params.repetition !== 'number') {\n  throw new Error('\"gen_params.repetition\" must be a number.');\n}\nif (typeof inputJson.gen_params.seed !== 'number') {\n  throw new Error('\"gen_params.seed\" must be a number.');\n}\n\nconst repetition = Math.floor(inputJson.gen_params.repetition);\nif (repetition < 0) {\n  throw new Error('\"gen_params.repetition\" must be >= 0.');\n}\n\nlet seed = inputJson.gen_params.seed;\n\nconst out = [];\nfor (let i = 0; i < repetition; i++) {\n  // Deep clone so each item is independent\n  const cloned = JSON.parse(JSON.stringify(inputJson));\n\n  // Set incremented seed\n  cloned.gen_params.seed = seed;\n\n  out.push({ json: cloned });\n\n  seed++;\n}\n\nreturn out;\n"
+        "jsCode": "// Get input data\nconst inputData = $input.all();\nconst outputData = [];\n\n// Process each input item\nfor (const item of inputData) {\n  const data = item.json;\n  const replication = data.gen_params.repetition;\n  const initialSeed = data.gen_params.seed;\n  \n  // Replicate the structure n times with incremented seed\n  for (let i = 0; i < replication; i++) {\n    const replicated = JSON.parse(JSON.stringify(data)); // Deep copy\n    replicated.gen_params.seed = initialSeed + i;\n    outputData.push({ json: replicated });\n  }\n}\n\nreturn outputData;"
       },
       "id": "cecc579d-6324-4342-afb0-c9a51eec4ef1",
       "name": "Code",
@@ -44,7 +44,7 @@
           "number": [
             {
               "name": "gen_params.num_of_blocks",
-              "value": "=7"
+              "value": "=2"
             },
             {
               "name": "gen_params.seed",
@@ -52,7 +52,7 @@
             },
             {
               "name": "gen_params.repetition",
-              "value": 5
+              "value": 3
             }
           ]
         },
@@ -133,21 +133,8 @@
       "type": "n8n-nodes-python.pythonFunction",
       "typeVersion": 1,
       "position": [
-        1140,
-        560
-      ]
-    },
-    {
-      "parameters": {
-        "jsCode": "const items = $input.all();\n\n// Keep only items that have json and at least one key\nconst filtered = items.filter(i =>\n  i.json && typeof i.json === 'object' && Object.keys(i.json).length > 0\n);\n\n// Return in valid n8n format\nreturn filtered.map(i => ({ json: i.json }));\n\n\n"
-      },
-      "id": "4d2e0f38-bc57-46ad-a6e1-a8454197fb21",
-      "name": "Filter",
-      "type": "n8n-nodes-base.code",
-      "typeVersion": 1,
-      "position": [
-        980,
-        560
+        1040,
+        580
       ]
     }
   ],
@@ -241,17 +228,6 @@
         ],
         [
           {
-            "node": "Filter",
-            "type": "main",
-            "index": 0
-          }
-        ]
-      ]
-    },
-    "Filter": {
-      "main": [
-        [
-          {
             "node": "Visualize pareto frontier",
             "type": "main",
             "index": 0
@@ -262,7 +238,7 @@
   },
   "active": false,
   "settings": {},
-  "versionId": "2dfaf1b1-6403-4f13-816c-d36391679187",
+  "versionId": "ea1b7023-cc79-4024-a8d6-ade3d34ea031",
   "id": "1",
   "meta": {
     "instanceId": "1bafb9c188fe6ca1bd9fcebdda2cba4a15931632499d6394bb1323640e1f70db"

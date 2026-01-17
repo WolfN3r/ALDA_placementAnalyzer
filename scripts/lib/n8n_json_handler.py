@@ -2,6 +2,7 @@
 """
 Universal n8n JSON Handler
 Handles JSON communication between n8n and external Python scripts with safe encoding
+Auto-unwraps {"batch": [...]} structure and ensures UTF-8 safety
 """
 
 import json
@@ -19,6 +20,7 @@ class N8nJsonHandler:
     def load_from_n8n(self):
         """
         Safely load JSON from n8n stdin with proper encoding handling
+        Automatically unwraps {"batch": [...]} structure if present
         Returns: True if successful, False otherwise
         """
         try:
@@ -26,6 +28,12 @@ class N8nJsonHandler:
             input_bytes = sys.stdin.buffer.read()
             input_text = input_bytes.decode('utf-8', errors='replace')
             self.input_data = json.loads(input_text)
+            
+            # Auto-unwrap {"batch": [...]} structure from n8n Python nodes
+            if isinstance(self.input_data, dict) and len(self.input_data) == 1 and 'batch' in self.input_data:
+                if isinstance(self.input_data['batch'], list):
+                    self.input_data = self.input_data['batch']
+            
             return True
         except Exception as e:
             self._output_error(f"Failed to load JSON from n8n: {str(e)}")
@@ -34,6 +42,7 @@ class N8nJsonHandler:
     def load_from_file(self, filename):
         """
         Load JSON from file (for standalone testing)
+        Automatically unwraps {"batch": [...]} structure if present
         Args:
             filename (str): Path to JSON file
         Returns: True if successful, False otherwise
@@ -41,6 +50,12 @@ class N8nJsonHandler:
         try:
             with open(filename, 'r', encoding='utf-8') as f:
                 self.input_data = json.load(f)
+            
+            # Auto-unwrap {"batch": [...]} structure
+            if isinstance(self.input_data, dict) and len(self.input_data) == 1 and 'batch' in self.input_data:
+                if isinstance(self.input_data['batch'], list):
+                    self.input_data = self.input_data['batch']
+            
             return True
         except Exception as e:
             self._output_error(f"Failed to load JSON from file {filename}: {str(e)}")
@@ -61,14 +76,37 @@ class N8nJsonHandler:
         """
         self.output_data = data
 
+    def _sanitize_for_utf8(self, obj):
+        """
+        Recursively sanitize data to ensure UTF-8 compatibility
+        Removes or replaces non-UTF-8 characters
+        Args:
+            obj: Any JSON-serializable object
+        Returns: Sanitized object safe for UTF-8 encoding
+        """
+        if isinstance(obj, str):
+            # Encode to UTF-8 and decode, replacing errors
+            return obj.encode('utf-8', errors='replace').decode('utf-8')
+        elif isinstance(obj, dict):
+            return {self._sanitize_for_utf8(k): self._sanitize_for_utf8(v) for k, v in obj.items()}
+        elif isinstance(obj, list):
+            return [self._sanitize_for_utf8(item) for item in obj]
+        elif isinstance(obj, tuple):
+            return tuple(self._sanitize_for_utf8(item) for item in obj)
+        else:
+            return obj
+
     def output_to_n8n(self):
         """
-        Safely output JSON to n8n stdout with proper encoding
+        Safely output JSON to n8n stdout with UTF-8 sanitization
         """
         if self.output_data is not None:
             try:
-                # Safe JSON output - prevents ASCII character issues
-                output_text = json.dumps(self.output_data, ensure_ascii=False, separators=(',', ':'))
+                # Sanitize data to ensure UTF-8 safety
+                safe_output = self._sanitize_for_utf8(self.output_data)
+                
+                # Safe JSON output with UTF-8 encoding
+                output_text = json.dumps(safe_output, ensure_ascii=False, separators=(',', ':'))
                 print(output_text)
             except Exception as e:
                 self._output_error(f"Failed to serialize output: {str(e)}")

@@ -1,0 +1,76 @@
+{
+  "batch": [
+    {
+      "generation_params": {
+        "num_of_blocks": 3,
+        "seed": 1
+      },
+      "cost_function": {
+        "area": 3414.8795,
+        "wirelength": 237.175,
+        "aspect_ratio": 2.62036,
+        "bounding_box": {
+          "x_min": 0,
+          "y_min": 0,
+          "x_max": 94.595,
+          "y_max": 36.1
+        },
+        "weights": [
+          0.4,
+          0.4,
+          0.2
+        ],
+        "target_aspect_ratio": 1,
+        "cost": 1461.346913
+      }
+    },
+    {
+      "generation_params": {
+        "num_of_blocks": 3,
+        "seed": 2
+      },
+      "cost_function": {
+        "area": 1592.57205,
+        "wirelength": 70.2975,
+        "aspect_ratio": 0.496161,
+        "bounding_box": {
+          "x_min": 0,
+          "y_min": 0,
+          "x_max": 28.11,
+          "y_max": 56.655
+        },
+        "weights": [
+          0.4,
+          0.4,
+          0.2
+        ],
+        "target_aspect_ratio": 1,
+        "cost": 665.198591
+      }
+    },
+    {
+      "generation_params": {
+        "num_of_blocks": 3,
+        "seed": 3
+      },
+      "cost_function": {
+        "area": 2109.3504,
+        "wirelength": 218.84,
+        "aspect_ratio": 2.902077,
+        "bounding_box": {
+          "x_min": 0,
+          "y_min": 0,
+          "x_max": 78.24000000000001,
+          "y_max": 26.96
+        },
+        "weights": [
+          0.4,
+          0.4,
+          0.2
+        ],
+        "target_aspect_ratio": 1,
+        "cost": 931.999739
+      }
+    }
+  ]
+}

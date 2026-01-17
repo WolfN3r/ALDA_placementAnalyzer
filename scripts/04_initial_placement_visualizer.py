@@ -333,9 +333,6 @@ def process_placement_data(json_data):
             "cost_function": cost_function
         }
         
-        if DISPLAY_MODE == 0:
-            result["visualization_saved"] = str(output_path)
-        
         return result
         
     except Exception as e:

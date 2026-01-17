@@ -32,7 +32,7 @@
     }
   },
   "netlist": {
-    "density": 2.0,
+    "density": 2,
     "pins_per_block_min": 3,
     "pins_per_block_max": 6,
     "comment": "Netlist generation: N_nets = density * N_blocks, pins per block 3-6"
